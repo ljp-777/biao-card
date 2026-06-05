@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>彪哥摘意卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Noto Serif SC",serif;
+  background:#141820;
+  background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(45,106,79,.18),transparent),radial-gradient(circle at 20% 80%,rgba(212,168,75,.08),transparent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 20px 40px;color:#e8e4dc;
+}
+.bg-deco{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.bg-deco span{position:absolute;font-family:"ZCOOL KuaiLe",cursive;color:rgba(255,255,255,.04);font-size:120px;user-select:none}
+.bg-deco span:nth-child(1){top:8%;left:6%;transform:rotate(-12deg)}
+.bg-deco span:nth-child(2){top:55%;right:8%;transform:rotate(8deg);font-size:90px}
+.bg-deco span:nth-child(3){bottom:18%;left:15%;font-size:70px;transform:rotate(-5deg)}
+.header{text-align:center;margin-bottom:32px;position:relative;z-index:1;max-width:480px}
+.header-top{font-size:12px;letter-spacing:6px;text-transform:uppercase;color:#6db88a;margin-bottom:14px;font-weight:600}
+.header h1{font-family:"ZCOOL KuaiLe",cursive;font-size:56px;font-weight:400;letter-spacing:6px;color:#f0ebe3;line-height:1.1;text-shadow:0 2px 24px rgba(45,106,79,.35)}
+.header h1 .hl{color:#8fd4a8}
+.header-sub{font-size:15px;margin-top:14px;color:#8a939f;letter-spacing:1px;line-height:1.6}
+.header-sub strong{color:#d4a84b;font-weight:600}
+.header-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:18px}
+.header-tags span{font-size:12px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9aab8a;letter-spacing:1px}
+.card-wrap{width:100%;max-width:420px;perspective:900px;position:relative;z-index:1;padding-bottom:36px}
+.card-stack{position:relative;width:100%}
+.card-layer{
+  position:absolute;left:0;right:0;top:0;bottom:0;
+  background:linear-gradient(180deg,#ebe5db,#e0dace);
+  border-radius:4px;border:1px solid rgba(255,255,255,.12);
+  pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+.card-layer.l1{transform:translate(16px,16px) rotate(2.5deg);opacity:.22;z-index:0}
+.card-layer.l2{transform:translate(10px,10px) rotate(1.2deg);opacity:.38;z-index:1}
+.card-layer.l3{transform:translate(5px,5px) rotate(.4deg);opacity:.55;z-index:2}
+.card{
+  position:relative;z-index:3;
+  background:#f7f2ea;border-radius:4px;overflow:visible;
+  box-shadow:0 24px 64px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06);
+  display:flex;flex-direction:column;
+  transition:transform .45s cubic-bezier(.4,0,.2,1),opacity .3s;
+  transform:rotate(var(--tilt,0deg));
+}
+.card.flip-out{transform:rotate(var(--tilt,0deg)) rotateY(88deg) scale(.96);opacity:0}
+.card.flip-in{animation:popIn .5s cubic-bezier(.34,1.4,.64,1)}
+@keyframes popIn{0%{transform:rotate(var(--tilt,0deg)) scale(.92);opacity:0}100%{transform:rotate(var(--tilt,0deg)) scale(1);opacity:1}}
+.card-img{width:100%;aspect-ratio:16/10;overflow:hidden;background:#ddd;background-size:cover;background-position:center top;position:relative}
+.img-label{
+  position:absolute;bottom:12px;left:12px;
+  background:rgba(20,24,32,.72);backdrop-filter:blur(6px);
+  color:#fff;padding:5px 14px;border-radius:4px;font-size:12px;letter-spacing:1px;
+  border-left:3px solid var(--accent,#2d6a4f);
+}
+.card-body{padding:28px 26px 32px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(180deg,#faf6ef,#f0ebe3);border-radius:0 0 4px 4px}
+.quote{font-size:18px;line-height:1.85;font-weight:600;color:#2a2824;word-break:break-word}
+.quote::before{content:"";display:block;width:28px;height:3px;background:#2d6a4f;margin-bottom:14px;border-radius:2px}
+.source{margin-top:22px;padding-top:16px;border-top:1px dashed rgba(0,0,0,.12)}
+.source .who{font-size:13px;color:#2d6a4f;font-weight:700;margin-bottom:4px}
+.source .ep{font-size:11px;color:#9a9488;line-height:1.6}
+.btn-draw{
+  position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);z-index:5;
+  border:none;cursor:pointer;font-family:inherit;
+  background:#f7f2ea;color:#2a2824;
+  padding:15px 36px;border-radius:999px;
+  font-size:15px;font-weight:600;letter-spacing:3px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 10px 36px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.8);
+  transition:transform .2s,box-shadow .2s,background .2s;
+}
+.btn-draw svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-draw:hover{background:#fff;transform:translateX(-50%) translateY(-2px);box-shadow:0 14px 40px rgba(0,0,0,.42)}
+.btn-draw:active{transform:translateX(-50%) scale(.98)}
+.ver{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.5px;z-index:2}
+</style>
+</head>
+<body>
+<div class="bg-deco"><span>彪</span><span>辽北</span><span>开原</span></div>
+<div class="header">
+  <div class="header-top">辽北精神文化遗产</div>
+  <h1><span class="hl">彪哥</span>摘意卡</h1>
+  <p class="header-sub">按套路出牌 · 岗岗地收录 <strong id="totalNum">204</strong> 条经典</p>
+  <div class="header-tags"><span>辽北狠人</span><span>范德伊彪</span><span>按套路打</span></div>
+</div>
+<div class="card-wrap">
+  <div class="card-stack" id="cardStack">
+    <div class="card-layer l1"></div>
+    <div class="card-layer l2"></div>
+    <div class="card-layer l3"></div>
+    <div class="card" id="card">
+    <div class="card-img" id="img"><span class="img-label" id="imgLabel"></span></div>
+    <div class="card-body">
+      <div class="quote" id="quote"></div>
+      <div class="source">
+        <div class="who" id="who"></div>
+        <div class="ep" id="ep"></div>
+      </div>
+    </div>
+    <button class="btn-draw" id="btn">
+      <svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+      抽一张
+    </button>
+    </div>
+  </div>
+</div>
+<span class="ver" id="ver"></span>
+<script>
+const IMGS=['images/1.webp','images/2.webp','images/3.webp','images/4.webp','images/5.webp','images/6.webp','images/7.webp','images/8.webp','images/9.webp','images/10.webp'];
+const cards=[
+  {q:"辽北地区著名狠人。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"古有奥地利国弗洛伊德，今有辽北地区范德伊彪。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"论成败，人生豪迈，大不了从头再来。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"按套路打。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"风萧萧啊，易水寒，我这一去啊，要不着钱。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"小树不倒，我就不倒。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"欧了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"受惊若宠。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"弃勺从教。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"这家伙，岗岗地。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"有梦就做，做了就说，谁能解梦，惟有彪哥。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"那就抓紧时间慢慢等吧。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"咔咔咔！我挠~挠他。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"对内四十一，对外我永永远二十九。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你不按套路出牌啊。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"肉眼凡胎，量你也看不出来我是谁。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我曾经年少轻狂，打打杀杀，堪称辽北地区的著名狠人儿。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"如果你悬崖勒马，我保你回头是岸。如果你执迷不悟，我定会让你苦海无边，何去何从，给个说法。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我这落后的脑袋还戴了一个前进帽。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"生活所迫，只谈合作。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"解自己的梦，让别人说去吧。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"借一千还一千一，这是我的规矩。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你是不是撒野？你敢打她吗？这是妇女。敢吗？老人，敢吗？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你敢这么跟我说话？要搁去年，你这个小诊所都得从辽北大地消失。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"女人，梦吧梦吧不是罪。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"姐夫，我用一宿的时间，想完我了一生的事。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"彪记靓汤，星级服务。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"一个灯泡一张嘴，放进去就拿不出来？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你也吞啦？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"爱咋咋地。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"鹰爪挠。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"德德立志，德国地。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"这酒假的都得一千多吧？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"老范是你叫的么？那能一样么？叫你老鹰你干那？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"那咱们这就算胜利会晤了吧。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"从出江湖，东山再起。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"隔夜的水你不要喝吗？",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"打个预防和头型。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"虎头帮，咋就这么犟呢。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"你咋这么没素质呢，美利坚你都不知道哪啊，不巴黎首都吗。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"费~费~费翔吗！别瞎说，费翔是唱歌的！刘翔！",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"看姐夫！铁岭！！",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"玉芬没了？心梗啊。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"程程，你咋哭了呢？",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"欠钱不还，屁股朝南；欠钱不给，屁股朝北。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"这麻花有营养，全是油。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"迎面过来一辆26自行车，上面载着一名魁梧的中年男子。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"110啊，我牙掉了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你啥病啊？环掉了？你戴环了么？不是，我胳膊环掉了。啊，这个学名叫脱臼。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"按套路来呗。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"小样，头型弄得像刺猬似的。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"姐夫，我现在身上的零件还可以，愿将我的器官捐赠如下。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"心脏，捐给刘佩云，让我这颗滚烫的心，走进她的心房。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"结束梦游最好的办法，就是躺下重睡。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"一觉睡它五百年，睡醒之后，一个崭新的德彪将重新屹立在辽北大地上。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"家庭，事业，亲情，爱情，都被我的梦游一一断送了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我活了四十年，梦游半辈子。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你要说我啥都行，就是别说我没文化。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"时间就像海绵里的水，只要愿挤，总还是有的。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"你彪哥我，这辈子没服过谁。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我范德彪，走南闯北，什么场面没见过。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"这玩意儿，得讲究个气场。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"开原市，不大，但事儿不少。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"维多利亚娱乐城，那场面，老鼻子了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我跟钢子，那是兄弟。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"吴德成，你这个人，深不可测。",who:"范德彪",ep:"马大帅 · 第三季",img:"biao"},
+  {q:"这世道，谁还不是个狠人。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"姐夫，你放心，有我在，没人敢动小翠一根汗毛。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"我跟你说，这梦，不能乱做。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"辽北大地，卧虎藏龙。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"姐夫，你别逼我。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"辽北范德彪，名震四海。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"按套路出牌，那是基本素养。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"姐夫，我范德彪，说到做到。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"这气场，一般人压不住。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"吴德成，高人。",who:"范德彪",ep:"马大帅 · 第三季",img:"biao"},
+  {q:"范德彪，辽北第一保镖。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"姐夫，我这一去，不知何时归来。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"钢子，兄弟，一辈子。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"吴德成，深不可测。",who:"范德彪",ep:"马大帅 · 第三季",img:"biao"},
+  {q:"按套路，走。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"欧了，就这么定了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"小树不倒，范德彪不倒。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"辽北狠人，范德彪。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"钢子，够意思。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"吴德成，江湖人。",who:"范德彪",ep:"马大帅 · 第三季",img:"biao"},
+  {q:"范德伊彪，辽北弗洛伊德。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"论成败，人生豪迈。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"大不了，从头再来。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"受惊若宠，钢子。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"弃勺从教，改行做饭。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"岗岗地，没治了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"谁能解梦，惟有彪哥。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"抓紧时间，慢慢等。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"鹰爪挠，咔咔咔。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"永永远二十九。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"不按套路，不行。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"肉眼凡胎，看不出来。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"年少轻狂，打打杀杀。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"悬崖勒马，回头是岸。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"执迷不悟，苦海无边。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"落后脑袋，前进帽。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"生活所迫，只谈合作。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"解自己的梦。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"借一千，还一千一。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"撒野？你敢吗。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"小诊所，从辽北消失。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"梦吧梦吧，不是罪。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"一宿想完一生。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"彪记靓汤。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"灯泡张嘴，拿不出来。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"你也吞啦。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"爱咋咋地。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"德德立志。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"假酒一千多。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"胜利会晤。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"出江湖，东山再起。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"隔夜水，别喝。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"预防头型。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"虎头帮，犟。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"美利坚，巴黎首都。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"费翔唱歌，刘翔跨栏。",who:"范德彪",ep:"马大帅 · 第二季",img:"biao"},
+  {q:"看姐夫，铁岭。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"玉芬没了，心梗。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"程程哭了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"欠钱屁股朝向。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"麻花全是油。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"26自行车魁梧男子。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"110牙掉了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
+  {q:"环掉了，脱臼。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"}
+];
+let last=-1;
+const card=document.getElementById('card');
+const imgEl=document.getElementById('img');
+const imgLabel=document.getElementById('imgLabel');
+const quote=document.getElementById('quote');
+const who=document.getElementById('who');
+const ep=document.getElementById('ep');
+document.getElementById('totalNum').textContent=cards.length;
+function show(i){
+  const c=cards[i];
+  card.style.setProperty('--tilt',(Math.random()*3-1.5).toFixed(1)+'deg');
+  imgEl.style.backgroundImage='url("'+IMGS[Math.floor(Math.random()*IMGS.length)]+'")';
+  imgLabel.textContent=c.who;
+  quote.textContent=c.q;
+  who.textContent='— '+c.who;
+  ep.textContent=c.ep;
+}
+function draw(){
+  let i;
+  do{i=Math.floor(Math.random()*cards.length)}while(i===last&&cards.length>1);
+  last=i;
+  card.classList.add('flip-out');
+  setTimeout(()=>{
+    show(i);
+    card.classList.remove('flip-out');
+    card.classList.remove('flip-in');
+    void card.offsetWidth;
+    card.classList.add('flip-in');
+  },300);
+}
+document.getElementById('btn').onclick=draw;
+document.getElementById('ver').textContent='v'+new Date().toISOString().slice(0,10).replace(/-/g,'.')+'.'+String(cards.length).padStart(3,'0');
+draw();
+</script>
+</body>
+</html>
