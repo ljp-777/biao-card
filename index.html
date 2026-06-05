@@ -17,28 +17,18 @@ body{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:20px 20px 48px;color:#e8e4dc;
 }
-.mode-tabs{display:flex;gap:8px;margin-bottom:20px;position:relative;z-index:2}
-.mode-tabs button{
-  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#8a939f;
-  padding:10px 22px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:600;
-  letter-spacing:2px;cursor:pointer;transition:all .2s;
+.mode-link{
+  border:none;background:none;font-family:inherit;font-size:12px;color:#4a5260;
+  letter-spacing:2px;cursor:pointer;margin-bottom:16px;transition:color .2s;
 }
-.mode-tabs button.active{background:#2d6a4f;border-color:#2d6a4f;color:#f0ebe3;box-shadow:0 4px 20px rgba(45,106,79,.4)}
-.mode-tabs button:hover:not(.active){background:rgba(255,255,255,.08);color:#e8e4dc}
+.mode-link:hover{color:#d4a84b}
 .panel{width:100%;max-width:420px;position:relative;z-index:1}
 .panel.hidden{display:none}
 .input-slot{width:100%;max-width:420px;height:42px;margin-bottom:12px;position:relative;z-index:1}
-.input-ph,.input-slot textarea{
-  width:100%;height:42px;border:1px solid rgba(255,255,255,.12);border-radius:8px;
-  font-family:inherit;font-size:14px;line-height:42px;
-}
-.input-ph{
-  display:flex;align-items:center;padding:0 14px;
-  background:rgba(255,255,255,.03);color:#5a6270;letter-spacing:1px;
-  border-color:rgba(255,255,255,.06);
-}
 .input-slot textarea{
+  width:100%;height:42px;border:1px solid rgba(255,255,255,.12);border-radius:8px;
   resize:none;background:rgba(255,255,255,.06);color:#e8e4dc;padding:11px 14px;outline:none;line-height:1.4;box-sizing:border-box;
+  font-family:inherit;font-size:14px;
   overflow:hidden;scrollbar-width:none;
 }
 .input-slot textarea::-webkit-scrollbar{display:none}
@@ -62,6 +52,11 @@ body{
   font-size:13px;letter-spacing:1px;z-index:99;transition:transform .3s;pointer-events:none;
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
+.share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
+.share-overlay .share-box{text-align:center;max-width:92vw}
+.share-overlay img{max-width:100%;max-height:62vh;border-radius:8px;display:block;margin:0 auto;-webkit-touch-callout:default}
+.share-overlay p{margin-top:16px;font-size:13px;color:#8a939f;letter-spacing:1px;line-height:1.6}
+.share-overlay .share-close{margin-top:20px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#e8e4dc;padding:10px 32px;border-radius:999px;font-family:inherit;font-size:13px;cursor:pointer}
 .hidden{display:none!important}
 .bg-deco{position:fixed;inset:0;pointer-events:none;overflow:hidden}
 .bg-deco span{position:absolute;font-family:"ZCOOL KuaiLe",cursive;color:rgba(255,255,255,.04);font-size:120px;user-select:none}
@@ -134,13 +129,9 @@ body{
   <p class="header-sub">按套路出牌 · 岗岗地收录 <strong id="totalNum">204</strong> 条经典</p>
   <div class="header-tags"><span>辽北狠人</span><span>范德伊彪</span><span>按套路打</span></div>
 </div>
-<div class="mode-tabs">
-  <button class="active" data-mode="draw">摘意卡</button>
-  <button data-mode="reply">彪哥回复</button>
-</div>
-<div class="input-slot">
-  <div class="input-ph" id="drawPh">点下方按钮，按套路抽一张</div>
-  <textarea id="replyInput" class="hidden" rows="1" placeholder="粘贴对方说的话…" maxlength="500"></textarea>
+<button type="button" class="mode-link" id="modeSwitch">彪哥回复 →</button>
+<div class="input-slot hidden" id="inputSlot">
+  <textarea id="replyInput" rows="1" placeholder="粘贴对方说的话…" maxlength="500"></textarea>
 </div>
 <div class="panel" id="drawPanel">
 <div class="card-wrap">
@@ -162,13 +153,20 @@ body{
         <svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
         抽一张
       </button>
-      <button class="btn-copy hidden" id="copyBtn">复制图片</button>
+      <button class="btn-copy hidden" id="copyBtn">保存分享</button>
     </div>
     </div>
   </div>
 </div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="share-overlay hidden" id="shareOverlay">
+  <div class="share-box">
+    <img id="shareImg" alt="">
+    <p id="shareTip"></p>
+    <button type="button" class="share-close" id="shareClose">关闭</button>
+  </div>
+</div>
 <span class="ver" id="ver"></span>
 <script>
 const IMGS=['images/1.webp','images/2.webp','images/3.webp','images/4.webp','images/5.webp','images/6.webp','images/7.webp','images/8.webp','images/9.webp','images/10.webp'];
@@ -312,8 +310,8 @@ const quote=document.getElementById('quote');
 const who=document.getElementById('who');
 const ep=document.getElementById('ep');
 const copyBtn=document.getElementById('copyBtn');
-const drawPh=document.getElementById('drawPh');
 const replyInput=document.getElementById('replyInput');
+const modeSwitch=document.getElementById('modeSwitch');
 let replyTimer,lastReplyText='';
 document.getElementById('totalNum').textContent=cards.length;
 const REPLY_RULES=[
@@ -413,9 +411,8 @@ function draw(){
 }
 function setMode(m){
   mode=m;
-  document.querySelectorAll('.mode-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
-  drawPh.classList.toggle('hidden',m==='reply');
-  replyInput.classList.toggle('hidden',m!=='reply');
+  modeSwitch.textContent=m==='draw'?'彪哥回复 →':'← 摘意卡';
+  document.getElementById('inputSlot').classList.toggle('hidden',m!=='reply');
   copyBtn.classList.toggle('hidden',m!=='reply');
   document.getElementById('btn').innerHTML=m==='reply'
     ?'<svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>换一句'
@@ -468,7 +465,14 @@ function frameCanvas(src){
   ctx.stroke();
   return out;
 }
-async function copyShareImage(){
+function showShareOverlay(dataUrl){
+  document.getElementById('shareImg').src=dataUrl;
+  document.getElementById('shareTip').textContent=/MicroMessenger|Android|iPhone|iPad/i.test(navigator.userAgent)
+    ?'长按图片保存到相册，打开微信从相册发送'
+    :'右键图片另存为，或拖入微信聊天窗口';
+  document.getElementById('shareOverlay').classList.remove('hidden');
+}
+async function saveShareImage(){
   const stack=document.getElementById('cardStack');
   const actions=document.getElementById('cardActions');
   actions.classList.add('hidden');
@@ -483,23 +487,22 @@ async function copyShareImage(){
     });
     const canvas=frameCanvas(raw);
     const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
-    if(navigator.clipboard&&window.ClipboardItem){
-      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-      toast('图片已复制，去粘贴发给好友');
-    }else{
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='彪哥回复.png';
-      a.click();
-      toast('已下载图片，可发给好友');
+    const file=new File([blob],'彪哥回复.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file]});
+        return;
+      }catch(e){if(e.name==='AbortError')return;}
     }
+    showShareOverlay(canvas.toDataURL('image/png'));
   }catch(e){
-    toast('复制失败，请长按保存');
+    toast('生成失败');
   }finally{
     actions.classList.remove('hidden');
   }
 }
-document.querySelectorAll('.mode-tabs button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.getElementById('shareClose').onclick=()=>document.getElementById('shareOverlay').classList.add('hidden');
+document.getElementById('modeSwitch').onclick=()=>setMode(mode==='draw'?'reply':'draw');
 document.getElementById('btn').onclick=()=>{
   if(mode==='reply'){
     const t=replyInput.value.trim();
@@ -518,7 +521,7 @@ replyInput.oninput=function(){
 replyInput.onkeydown=function(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();clearTimeout(replyTimer);const t=this.value.trim();if(t)doReply(t);}
 };
-copyBtn.onclick=copyShareImage;
+copyBtn.onclick=saveShareImage;
 document.getElementById('ver').textContent='v'+new Date().toISOString().slice(0,10).replace(/-/g,'.')+'.'+String(cards.length).padStart(3,'0');
 setMode('draw');
 draw();
