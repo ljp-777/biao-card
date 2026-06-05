@@ -6,16 +6,63 @@
 <title>彪哥摘意卡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden}
+html,body{min-height:100%}
 body{
   font-family:"Noto Serif SC",serif;
   background:#141820;
   background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(45,106,79,.18),transparent),radial-gradient(circle at 20% 80%,rgba(212,168,75,.08),transparent);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px 20px 40px;color:#e8e4dc;
+  padding:20px 20px 48px;color:#e8e4dc;
 }
+.mode-tabs{display:flex;gap:8px;margin-bottom:20px;position:relative;z-index:2}
+.mode-tabs button{
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#8a939f;
+  padding:10px 22px;border-radius:999px;font-family:inherit;font-size:13px;font-weight:600;
+  letter-spacing:2px;cursor:pointer;transition:all .2s;
+}
+.mode-tabs button.active{background:#2d6a4f;border-color:#2d6a4f;color:#f0ebe3;box-shadow:0 4px 20px rgba(45,106,79,.4)}
+.mode-tabs button:hover:not(.active){background:rgba(255,255,255,.08);color:#e8e4dc}
+.panel{width:100%;max-width:420px;position:relative;z-index:1}
+.panel.hidden{display:none}
+.input-slot{width:100%;max-width:420px;height:42px;margin-bottom:12px;position:relative;z-index:1}
+.input-ph,.input-slot textarea{
+  width:100%;height:42px;border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  font-family:inherit;font-size:14px;line-height:42px;
+}
+.input-ph{
+  display:flex;align-items:center;padding:0 14px;
+  background:rgba(255,255,255,.03);color:#5a6270;letter-spacing:1px;
+  border-color:rgba(255,255,255,.06);
+}
+.input-slot textarea{
+  resize:none;background:rgba(255,255,255,.06);color:#e8e4dc;padding:11px 14px;outline:none;line-height:1.4;box-sizing:border-box;
+  overflow:hidden;scrollbar-width:none;
+}
+.input-slot textarea::-webkit-scrollbar{display:none}
+.input-slot textarea::placeholder{color:#6a7280}
+.input-slot textarea:focus{border-color:#2d6a4f;background:rgba(255,255,255,.08)}
+.card-actions{display:flex;gap:8px;position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);z-index:5}
+.card-actions .btn-draw{position:static;transform:none;flex:1;white-space:nowrap;padding:15px 20px}
+.card-actions .btn-draw:hover{transform:translateY(-2px)}
+.card-actions .btn-draw:active{transform:scale(.98)}
+.card-actions .btn-copy{
+  border:none;cursor:pointer;font-family:inherit;background:#d4a84b;color:#2a2824;
+  padding:15px 18px;border-radius:999px;font-size:14px;font-weight:600;letter-spacing:2px;
+  box-shadow:0 10px 36px rgba(0,0,0,.38);transition:transform .2s,background .2s;white-space:nowrap;
+}
+.card-actions .btn-copy:hover{background:#e8bc5a;transform:translateY(-2px)}
+.card-actions .btn-copy:active{transform:scale(.98)}
+.card-actions.hidden{display:none}
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:rgba(45,106,79,.95);color:#fff;padding:10px 24px;border-radius:999px;
+  font-size:13px;letter-spacing:1px;z-index:99;transition:transform .3s;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
 .bg-deco{position:fixed;inset:0;pointer-events:none;overflow:hidden}
 .bg-deco span{position:absolute;font-family:"ZCOOL KuaiLe",cursive;color:rgba(255,255,255,.04);font-size:120px;user-select:none}
 .bg-deco span:nth-child(1){top:8%;left:6%;transform:rotate(-12deg)}
@@ -65,18 +112,17 @@ body{
 .source .who{font-size:13px;color:#2d6a4f;font-weight:700;margin-bottom:4px}
 .source .ep{font-size:11px;color:#9a9488;line-height:1.6}
 .btn-draw{
-  position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);z-index:5;
   border:none;cursor:pointer;font-family:inherit;
   background:#f7f2ea;color:#2a2824;
   padding:15px 36px;border-radius:999px;
   font-size:15px;font-weight:600;letter-spacing:3px;
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
   box-shadow:0 10px 36px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.8);
   transition:transform .2s,box-shadow .2s,background .2s;
 }
 .btn-draw svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.btn-draw:hover{background:#fff;transform:translateX(-50%) translateY(-2px);box-shadow:0 14px 40px rgba(0,0,0,.42)}
-.btn-draw:active{transform:translateX(-50%) scale(.98)}
+.btn-draw:hover{background:#fff;box-shadow:0 14px 40px rgba(0,0,0,.42)}
+.btn-draw:active{transform:scale(.98)}
 .ver{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.5px;z-index:2}
 </style>
 </head>
@@ -88,6 +134,15 @@ body{
   <p class="header-sub">按套路出牌 · 岗岗地收录 <strong id="totalNum">204</strong> 条经典</p>
   <div class="header-tags"><span>辽北狠人</span><span>范德伊彪</span><span>按套路打</span></div>
 </div>
+<div class="mode-tabs">
+  <button class="active" data-mode="draw">摘意卡</button>
+  <button data-mode="reply">彪哥回复</button>
+</div>
+<div class="input-slot">
+  <div class="input-ph" id="drawPh">点下方按钮，按套路抽一张</div>
+  <textarea id="replyInput" class="hidden" rows="1" placeholder="粘贴对方说的话…" maxlength="500"></textarea>
+</div>
+<div class="panel" id="drawPanel">
 <div class="card-wrap">
   <div class="card-stack" id="cardStack">
     <div class="card-layer l1"></div>
@@ -102,13 +157,18 @@ body{
         <div class="ep" id="ep"></div>
       </div>
     </div>
-    <button class="btn-draw" id="btn">
-      <svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
-      抽一张
-    </button>
+    <div class="card-actions" id="cardActions">
+      <button class="btn-draw" id="btn">
+        <svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        抽一张
+      </button>
+      <button class="btn-copy hidden" id="copyBtn">复制图片</button>
+    </div>
     </div>
   </div>
 </div>
+</div>
+<div class="toast" id="toast"></div>
 <span class="ver" id="ver"></span>
 <script>
 const IMGS=['images/1.webp','images/2.webp','images/3.webp','images/4.webp','images/5.webp','images/6.webp','images/7.webp','images/8.webp','images/9.webp','images/10.webp'];
@@ -244,38 +304,223 @@ const cards=[
   {q:"110牙掉了。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"},
   {q:"环掉了，脱臼。",who:"范德彪",ep:"马大帅 · 第一季",img:"biao"}
 ];
-let last=-1;
+let last=-1,mode='draw',currentIdx=0,currentImg='';
 const card=document.getElementById('card');
 const imgEl=document.getElementById('img');
 const imgLabel=document.getElementById('imgLabel');
 const quote=document.getElementById('quote');
 const who=document.getElementById('who');
 const ep=document.getElementById('ep');
+const copyBtn=document.getElementById('copyBtn');
+const drawPh=document.getElementById('drawPh');
+const replyInput=document.getElementById('replyInput');
+let replyTimer,lastReplyText='';
 document.getElementById('totalNum').textContent=cards.length;
-function show(i){
+const REPLY_RULES=[
+  {kw:['套路','出牌','不按','规矩','正常','标准'],idx:[3,13,64,187,195,211]},
+  {kw:['欠','借','还钱','赖账','赖皮','不还'],idx:[37,159,219]},
+  {kw:['打','揍','狠','动手','收拾','干你'],idx:[16,22,38,46,175]},
+  {kw:['撒野'],idx:[22,221]},
+  {kw:['梦','睡觉','梦游','做梦'],idx:[25,169,170,171,172,183,184,223]},
+  {kw:['文化','读书','学历','文盲','没读过'],idx:[55,154]},
+  {kw:['美国','巴黎','费翔','刘翔','素质','无知'],idx:[39,40,156,236]},
+  {kw:['老','年龄','岁','多大'],idx:[14,210]},
+  {kw:['诊所','医生','医院','看病'],idx:[23,222]},
+  {kw:['女人','女的','姑娘'],idx:[24,223]},
+  {kw:['等','拖','慢','着急'],idx:[11,208]},
+  {kw:['你是谁','什么玩意','你谁','算老几','什么东西'],idx:[15,30,212]},
+  {kw:['合作','生意','谈'],idx:[19,217]},
+  {kw:['服','认输','不行','算了'],idx:[74,175]},
+  {kw:['牛逼','吹牛','装','自大','厉害'],idx:[0,16,74,76,187]},
+  {kw:['威胁','吓唬','小心','弄你'],idx:[17,23,175,186]},
+  {kw:['爱','喜欢','感情'],idx:[24,52,223]},
+  {kw:['吃','喝','酒'],idx:[32,47,161,229]},
+  {kw:['欧','行','可以','同意','好'],idx:[6,196]},
+  {kw:['傻','蠢','笨','白痴'],idx:[39,40,15,212]},
+  {kw:['滚','走开','别烦'],idx:[29,175,186]},
+  {kw:['钱','贵','便宜','价格'],idx:[32,37,159,219]}
+];
+function randomCard(exclude){
+  if(cards.length<=1) return 0;
+  let i;
+  do{i=Math.floor(Math.random()*cards.length)}while(i===exclude);
+  return i;
+}
+function pickImg(seed){
+  let h=0;
+  for(let i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))|0;
+  return IMGS[Math.abs(h)%IMGS.length];
+}
+function matchReply(input,exclude){
+  const t=input.trim();
+  if(!t) return randomCard(exclude);
+  const hits=new Set();
+  for(const r of REPLY_RULES){
+    if(r.kw.some(k=>t.includes(k))) r.idx.forEach(i=>{if(i<cards.length)hits.add(i)});
+  }
+  let best=-1,bestS=0;
+  for(let i=0;i<cards.length;i++){
+    let s=hits.has(i)?80:0;
+    for(let j=0;j<t.length-1;j++){
+      const bg=t.slice(j,j+2);
+      if(cards[i].q.includes(bg)) s+=5;
+    }
+    for(let j=0;j<cards[i].q.length-1;j++){
+      const bg=cards[i].q.slice(j,j+2);
+      if(t.includes(bg)) s+=3;
+    }
+    if(s>bestS){bestS=s;best=i;}
+  }
+  if(hits.size) return [...hits][Math.floor(Math.random()*hits.size)];
+  if(bestS>=8) return best;
+  return randomCard(exclude);
+}
+function matchReplyAlt(input,exclude){
+  const t=input.trim();
+  const pool=new Set();
+  for(const r of REPLY_RULES){
+    if(r.kw.some(k=>t.includes(k))) r.idx.forEach(i=>{if(i<cards.length&&i!==exclude)pool.add(i)});
+  }
+  if(pool.size) return [...pool][Math.floor(Math.random()*pool.size)];
+  return randomCard(exclude);
+}
+function show(i,imgPath){
+  currentIdx=i;
   const c=cards[i];
   card.style.setProperty('--tilt',(Math.random()*3-1.5).toFixed(1)+'deg');
-  imgEl.style.backgroundImage='url("'+IMGS[Math.floor(Math.random()*IMGS.length)]+'")';
+  currentImg=imgPath||IMGS[Math.floor(Math.random()*IMGS.length)];
+  imgEl.style.backgroundImage='url("'+currentImg+'")';
   imgLabel.textContent=c.who;
   quote.textContent=c.q;
   who.textContent='— '+c.who;
   ep.textContent=c.ep;
 }
-function draw(){
-  let i;
-  do{i=Math.floor(Math.random()*cards.length)}while(i===last&&cards.length>1);
-  last=i;
+function flipTo(i,imgPath){
   card.classList.add('flip-out');
   setTimeout(()=>{
-    show(i);
+    show(i,imgPath);
     card.classList.remove('flip-out');
     card.classList.remove('flip-in');
     void card.offsetWidth;
     card.classList.add('flip-in');
   },300);
 }
-document.getElementById('btn').onclick=draw;
+function draw(){
+  let i;
+  do{i=Math.floor(Math.random()*cards.length)}while(i===last&&cards.length>1);
+  last=i;
+  flipTo(i);
+}
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+  drawPh.classList.toggle('hidden',m==='reply');
+  replyInput.classList.toggle('hidden',m!=='reply');
+  copyBtn.classList.toggle('hidden',m!=='reply');
+  document.getElementById('btn').innerHTML=m==='reply'
+    ?'<svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>换一句'
+    :'<svg viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>抽一张';
+  if(m==='reply'){
+    const t=replyInput.value.trim();
+    if(t) doReply(t);
+    else replyInput.focus();
+  }
+}
+function doReply(t){
+  lastReplyText=t;
+  flipTo(matchReply(t,currentIdx),pickImg(t));
+}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>el.classList.remove('show'),2000);
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+function frameCanvas(src){
+  const pad=32,border=5,r=10;
+  const out=document.createElement('canvas');
+  out.width=src.width+pad*2;
+  out.height=src.height+pad*2;
+  const ctx=out.getContext('2d');
+  ctx.drawImage(src,pad,pad);
+  roundRect(ctx,pad-border/2,pad-border/2,src.width+border,src.height+border,r);
+  const bd=ctx.createLinearGradient(0,0,out.width,out.height);
+  bd.addColorStop(0,'#d4a84b');
+  bd.addColorStop(.4,'#8fd4a8');
+  bd.addColorStop(.7,'#2d6a4f');
+  bd.addColorStop(1,'#d4a84b');
+  ctx.strokeStyle=bd;
+  ctx.lineWidth=border;
+  ctx.stroke();
+  return out;
+}
+async function copyShareImage(){
+  const stack=document.getElementById('cardStack');
+  const actions=document.getElementById('cardActions');
+  actions.classList.add('hidden');
+  try{
+    await document.fonts.ready;
+    const raw=await html2canvas(stack,{
+      scale:2,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:null,
+      logging:false
+    });
+    const canvas=frameCanvas(raw);
+    const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+    if(navigator.clipboard&&window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      toast('图片已复制，去粘贴发给好友');
+    }else{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='彪哥回复.png';
+      a.click();
+      toast('已下载图片，可发给好友');
+    }
+  }catch(e){
+    toast('复制失败，请长按保存');
+  }finally{
+    actions.classList.remove('hidden');
+  }
+}
+document.querySelectorAll('.mode-tabs button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.getElementById('btn').onclick=()=>{
+  if(mode==='reply'){
+    const t=replyInput.value.trim();
+    if(!t){toast('先粘贴对方说的话');return;}
+    lastReplyText='';
+    flipTo(matchReplyAlt(t,currentIdx),pickImg(t+Date.now()));
+    lastReplyText=t;
+  }else draw();
+};
+replyInput.oninput=function(){
+  clearTimeout(replyTimer);
+  const t=this.value.trim();
+  if(!t){lastReplyText='';return;}
+  replyTimer=setTimeout(()=>doReply(t),400);
+};
+replyInput.onkeydown=function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();clearTimeout(replyTimer);const t=this.value.trim();if(t)doReply(t);}
+};
+copyBtn.onclick=copyShareImage;
 document.getElementById('ver').textContent='v'+new Date().toISOString().slice(0,10).replace(/-/g,'.')+'.'+String(cards.length).padStart(3,'0');
+setMode('draw');
 draw();
 </script>
 </body>
