@@ -6,7 +6,6 @@
 <title>彪哥摘意卡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%}
@@ -453,6 +452,8 @@ function frameCanvas(src){
   out.width=src.width+pad*2;
   out.height=src.height+pad*2;
   const ctx=out.getContext('2d');
+  ctx.fillStyle='#f7f2ea';
+  ctx.fillRect(0,0,out.width,out.height);
   ctx.drawImage(src,pad,pad);
   roundRect(ctx,pad-border/2,pad-border/2,src.width+border,src.height+border,r);
   const bd=ctx.createLinearGradient(0,0,out.width,out.height);
@@ -472,20 +473,71 @@ function showShareOverlay(dataUrl){
     :'右键图片另存为，或拖入微信聊天窗口';
   document.getElementById('shareOverlay').classList.remove('hidden');
 }
+function loadImg(src){
+  return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src;});
+}
+function drawLines(ctx,text,x,y,maxW,lh){
+  let line='',cy=y;
+  for(const ch of text){
+    const t=line+ch;
+    if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line,x,cy);line=ch;cy+=lh;}
+    else line=t;
+  }
+  if(line)ctx.fillText(line,x,cy);
+  return cy+lh;
+}
+async function buildShareCanvas(){
+  const W=840,px=52,lh=66,imgH=Math.round(W*10/16);
+  await document.fonts.ready;
+  const photo=await loadImg(currentImg);
+  const q=quote.textContent,w=who.textContent,e=ep.textContent,lb=imgLabel.textContent;
+  const meas=document.createElement('canvas').getContext('2d');
+  meas.font='600 36px "Noto Serif SC",serif';
+  let lines=1,mock='';
+  for(const ch of q){
+    const t=mock+ch;
+    if(meas.measureText(t).width>W-px*2&&mock){lines++;mock=ch;}else mock=t;
+  }
+  const bodyH=Math.max(340,lines*lh+120);
+  const H=imgH+bodyH;
+  const c=document.createElement('canvas');
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f7f2ea';
+  ctx.fillRect(0,0,W,H);
+  const ir=photo.width/photo.height,tr=W/imgH;
+  let sx,sy,sw,sh;
+  if(ir>tr){sh=photo.height;sw=sh*tr;sx=(photo.width-sw)/2;sy=0;}
+  else{sw=photo.width;sh=sw/tr;sx=0;sy=0;}
+  ctx.drawImage(photo,sx,sy,sw,sh,0,0,W,imgH);
+  ctx.font='24px "Noto Serif SC",serif';
+  const badgeW=ctx.measureText(lb).width+56;
+  ctx.fillStyle='rgba(20,24,32,.88)';
+  ctx.fillRect(24,imgH-60,badgeW,44);
+  ctx.fillStyle='#2d6a4f';
+  ctx.fillRect(24,imgH-60,4,44);
+  ctx.fillStyle='#fff';
+  ctx.fillText(lb,44,imgH-30);
+  ctx.fillStyle='#2d6a4f';
+  ctx.fillRect(px,imgH+28,56,6);
+  ctx.fillStyle='#2a2824';
+  ctx.font='600 36px "Noto Serif SC",serif';
+  let ty=drawLines(ctx,q,px,imgH+80,W-px*2,lh);
+  ctx.strokeStyle='rgba(0,0,0,.12)';
+  ctx.setLineDash([8,8]);
+  ctx.beginPath();ctx.moveTo(px,ty+16);ctx.lineTo(W-px,ty+16);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#2d6a4f';
+  ctx.font='700 26px "Noto Serif SC",serif';
+  ctx.fillText(w,px,ty+56);
+  ctx.fillStyle='#9a9488';
+  ctx.font='22px "Noto Serif SC",serif';
+  ctx.fillText(e,px,ty+90);
+  return c;
+}
 async function saveShareImage(){
-  const stack=document.getElementById('cardStack');
-  const actions=document.getElementById('cardActions');
-  actions.classList.add('hidden');
   try{
-    await document.fonts.ready;
-    const raw=await html2canvas(stack,{
-      scale:2,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:null,
-      logging:false
-    });
-    const canvas=frameCanvas(raw);
+    const canvas=frameCanvas(await buildShareCanvas());
     const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
     const file=new File([blob],'彪哥回复.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
@@ -497,8 +549,6 @@ async function saveShareImage(){
     showShareOverlay(canvas.toDataURL('image/png'));
   }catch(e){
     toast('生成失败');
-  }finally{
-    actions.classList.remove('hidden');
   }
 }
 document.getElementById('shareClose').onclick=()=>document.getElementById('shareOverlay').classList.add('hidden');
